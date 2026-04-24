@@ -80,6 +80,7 @@ package enum AgentBrokerClient {
     }
 
     private static func startBrokerIfNeeded(configuration: AgentBrokerConfiguration) throws -> Bool {
+#if os(macOS) || os(Linux)
         guard FileManager.default.isExecutableFile(atPath: configuration.brokerExecutablePath) else {
             throw BrokerClientError(
                 "Broker executable is not executable at \(configuration.brokerExecutablePath)"
@@ -160,6 +161,9 @@ package enum AgentBrokerClient {
         }
 
         throw BrokerClientError("Timed out waiting for broker startup.")
+#else
+        throw BrokerClientError("Wax broker is not supported on this platform.")
+#endif
     }
 
     private static func shutdownStartedBroker(configuration: AgentBrokerConfiguration) throws {

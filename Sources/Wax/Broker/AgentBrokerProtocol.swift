@@ -222,11 +222,17 @@ package enum AgentBrokerPathing {
             return URL(fileURLWithPath: expandPath(raw), isDirectory: true)
         }
 
-        return FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".local", isDirectory: true)
-            .appendingPathComponent("share", isDirectory: true)
-            .appendingPathComponent("waxmcp", isDirectory: true)
-            .appendingPathComponent("broker", isDirectory: true)
+        #if os(macOS)
+            return FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent(".local", isDirectory: true)
+                .appendingPathComponent("share", isDirectory: true)
+                .appendingPathComponent("waxmcp", isDirectory: true)
+                .appendingPathComponent("broker", isDirectory: true)
+        #else
+            return FileManager.default.temporaryDirectory
+                .appendingPathComponent("waxmcp", isDirectory: true)
+                .appendingPathComponent("broker", isDirectory: true)
+        #endif
     }
 
     package static func resolveBrokerCLIPath(
@@ -317,6 +323,7 @@ package enum AgentBrokerPathing {
     }
 
     private static func resolveExecutableOnPath(_ tool: String) -> String? {
+#if os(macOS) || os(Linux)
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
         process.arguments = ["which", tool]
@@ -341,5 +348,8 @@ package enum AgentBrokerPathing {
         let path = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let path, !path.isEmpty else { return nil }
         return path
+#else
+        return nil
+#endif
     }
 }
